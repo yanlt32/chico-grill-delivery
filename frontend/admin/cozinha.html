@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozinha — CHICO GRILL</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <div class="logo-dot"></div>
+                CHICO GRILL &nbsp;/&nbsp; Cozinha
+            </div>
+            <div class="header-stats">
+                <div class="stat-pill">
+                    <span class="count" id="count-novos">0</span>
+                    <span class="label">Novos</span>
+                </div>
+                <div class="stat-pill">
+                    <span class="count" id="count-preparo" style="color:var(--warning)">0</span>
+                    <span class="label">Em preparo</span>
+                </div>
+                <div class="stat-pill">
+                    <span class="count" id="count-prontos" style="color:var(--success)">0</span>
+                    <span class="label">Prontos</span>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:1rem">
+                <div class="clock" id="clock">--:--:--</div>
+                <button class="btn-logout" onclick="logout()">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="kanban">
+            <div class="kanban-col">
+                <div class="kanban-header">
+                    <div class="kanban-title">
+                        <div class="dot dot-red"></div>
+                        Novos Pedidos
+                    </div>
+                    <div class="kanban-count" id="badge-novos">0</div>
+                </div>
+                <div class="kanban-body" id="col-novos"></div>
+            </div>
+
+            <div class="kanban-col">
+                <div class="kanban-header">
+                    <div class="kanban-title">
+                        <div class="dot dot-yellow"></div>
+                        Em Preparo
+                    </div>
+                    <div class="kanban-count" id="badge-preparo">0</div>
+                </div>
+                <div class="kanban-body" id="col-preparo"></div>
+            </div>
+
+            <div class="kanban-col">
+                <div class="kanban-header">
+                    <div class="kanban-title">
+                        <div class="dot dot-green"></div>
+                        Prontos
+                    </div>
+                    <div class="kanban-count" id="badge-prontos">0</div>
+                </div>
+                <div class="kanban-body" id="col-prontos"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.js"></script>
+    <script src="cozinha.js"></script>
+</body>
+</html>

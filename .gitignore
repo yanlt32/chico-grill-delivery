@@ -1,0 +1,22 @@
+# Ignore files
+node_modules/
+.env
+.env.local
+.DS_Store
+*.log
+dist/
+build/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.sql
+
+# IDE
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace

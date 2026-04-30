@@ -1,0 +1,16 @@
+{
+  "name": "chico-grill-delivery",
+  "version": "1.0.0",
+  "description": "Sistema de delivery online para CHICO GRILL",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend start\"",
+    "backend": "npm --prefix backend start",
+    "frontend": "npm --prefix frontend start",
+    "setup": "npm --prefix backend install && npm --prefix frontend install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0",
+    "open": "^11.0.0"
+  }
+}

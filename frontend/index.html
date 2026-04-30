@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHICO GRILL - Delivery</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="container">
+                <div class="logo">🍔 <span>CHICO</span> GRILL</div>
+                <div class="header-actions">
+                    <button class="btn-carrinho" onclick="abrirCarrinho()">
+                        <span class="carrinho-icon">🛒</span>
+                        <span>Carrinho</span>
+                        <span class="carrinho-count" id="carrinho-count">0</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+
+                <!-- VIEW: CARDÁPIO -->
+                <div id="view-cardapio" class="view ativo">
+                    <div class="hero">
+                        <div class="hero-tag">Delivery Online</div>
+                        <h1>BEM-VINDO AO<br><span>CHICO GRILL</span></h1>
+                        <p class="subtitle">Espetos artesanais, burgers e mais — direto na sua porta</p>
+                    </div>
+
+                    <div class="categorias">
+                        <button class="btn-categoria ativo" onclick="filtrarCardapio('espetos')">
+                            <span class="cat-icon">🔥</span> Espetos
+                        </button>
+                        <button class="btn-categoria" onclick="filtrarCardapio('burgers')">
+                            <span class="cat-icon">🍔</span> Burgers
+                        </button>
+                        <button class="btn-categoria" onclick="filtrarCardapio('bebidas')">
+                            <span class="cat-icon">🥤</span> Bebidas
+                        </button>
+                    </div>
+
+                    <div id="produtos-container" class="produtos-grid"></div>
+                </div>
+
+                <!-- VIEW: CARRINHO -->
+                <div id="view-carrinho" class="view">
+                    <div class="page-header">
+                        <h1>Seu Carrinho</h1>
+                        <button class="btn-back" onclick="voltarCardapio()">← Continuar comprando</button>
+                    </div>
+                    <div class="carrinho-layout">
+                        <div class="carrinho-esquerda">
+                            <div id="carrinho-items" class="carrinho-items"></div>
+                        </div>
+                        <div class="carrinho-direita">
+                            <div class="carrinho-resumo">
+                                <h3 class="resumo-titulo">Resumo</h3>
+                                <div class="resumo-item">
+                                    <span>Subtotal</span>
+                                    <span id="subtotal">R$ 0,00</span>
+                                </div>
+                                <div class="resumo-item">
+                                    <span>Taxa de entrega</span>
+                                    <span>R$ 5,00</span>
+                                </div>
+                                <div class="resumo-item total">
+                                    <span>Total</span>
+                                    <span id="total">R$ 5,00</span>
+                                </div>
+                                <button class="btn btn-primary btn-block" onclick="irCheckout()">Finalizar Pedido →</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: CHECKOUT -->
+                <div id="view-checkout" class="view">
+                    <div class="page-header">
+                        <h1>Finalizar Pedido</h1>
+                        <button class="btn-back" onclick="voltarCarrinho()">← Voltar ao carrinho</button>
+                    </div>
+                    <div class="checkout-layout">
+                        <div class="checkout-esquerda">
+                            <form onsubmit="confirmarPedido(event)" class="form-checkout" id="form-checkout">
+                                <div class="form-section-title">Dados de Entrega</div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Nome Completo *</label>
+                                        <input type="text" id="nome-cliente" required placeholder="Seu nome completo">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Telefone *</label>
+                                        <input type="tel" id="telefone" required placeholder="(00) 9 0000-0000">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Endereço Completo *</label>
+                                    <input type="text" id="endereco" required placeholder="Rua, número, complemento, bairro">
+                                </div>
+                                <div class="form-group">
+                                    <label>Observações</label>
+                                    <textarea id="observacoes" placeholder="Ponto de referência, observações sobre o pedido..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Confirmar e ir para Pagamento →</button>
+                            </form>
+                        </div>
+                        <div class="checkout-direita">
+                            <div class="checkout-resumo">
+                                <div class="form-section-title">Resumo do Pedido</div>
+                                <div id="checkout-items" class="checkout-items-list"></div>
+                                <div class="resumo-item total" style="margin-top:1rem">
+                                    <span>Total</span>
+                                    <span id="checkout-total">R$ 5,00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: PAGAMENTO -->
+                <div id="view-pagamento" class="view">
+                    <div class="page-header">
+                        <h1>Pagamento</h1>
+                    </div>
+                    <div class="pagamento-wrapper">
+                        <div class="pagamento-container">
+                            <div class="pagamento-metodo-titulo">Pague com PIX</div>
+                            <div class="qr-code-container">
+                                <p>Escaneie o QR Code com o app do seu banco</p>
+                                <div id="qr-code" class="qr-code"></div>
+                            </div>
+                            <div class="pagamento-ou"><span>ou</span></div>
+                            <button class="btn btn-outline btn-block" onclick="pagarComCartao()">💳 Pagar com Cartão</button>
+                            <div id="pagamento-status" class="pagamento-status"></div>
+                            <div class="pagamento-seguro">🔒 Pagamento 100% seguro</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: ACOMPANHAMENTO -->
+                <div id="view-acompanhamento" class="view">
+                    <div class="page-header">
+                        <h1>Acompanhe seu Pedido</h1>
+                    </div>
+                    <div class="acompanhamento-wrapper">
+                        <div id="pedido-info" class="pedido-info"></div>
+                        <div class="timeline-card">
+                            <div class="timeline-titulo">Status do Pedido</div>
+                            <div class="timeline">
+                                <div class="timeline-item" id="status-aguardando_pagamento">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-content"><h4>Aguardando Pagamento</h4><p>Confirme o pagamento para prosseguir</p></div>
+                                </div>
+                                <div class="timeline-item" id="status-pago">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-content"><h4>Pagamento Confirmado</h4><p>Seu pedido foi recebido</p></div>
+                                </div>
+                                <div class="timeline-item" id="status-em_preparo">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-content"><h4>Em Preparo</h4><p>A cozinha já está preparando</p></div>
+                                </div>
+                                <div class="timeline-item" id="status-pronto">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-content"><h4>Pronto para Entrega</h4><p>Aguardando o motoboy</p></div>
+                                </div>
+                                <div class="timeline-item" id="status-saiu_entrega">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-content"><h4>Saiu para Entrega</h4><p>Seu pedido está a caminho</p></div>
+                                </div>
+                                <div class="timeline-item" id="status-entregue">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-content"><h4>Entregue ✓</h4><p>Bom apetite!</p></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary btn-block" onclick="voltarCardapio()" style="max-width:400px">+ Fazer Novo Pedido</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-logo">🍔 CHICO GRILL</div>
+                    <p class="footer-copy">© 2024 — Todos os direitos reservados</p>
+                    <div class="footer-admin">
+                        <a href="admin/cozinha.html" class="btn-admin">👨‍🍳 Cozinha</a>
+                        <a href="admin/motoboy.html" class="btn-admin">🛵 Motoboy</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
