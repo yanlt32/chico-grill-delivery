@@ -1,12 +1,29 @@
 // ===== AUTH =====
 const SENHA = 'motoboy123';
-function verificarLogin() {
-    if (localStorage.getItem('chico_motoboy_auth') === SENHA) return true;
-    const input = prompt('🔒 Senha do Motoboy:');
-    if (input === SENHA) { localStorage.setItem('chico_motoboy_auth', SENHA); return true; }
-    alert('Senha incorreta!'); window.location.href = '../index.html'; return false;
+function iniciarLogin() {
+    if (localStorage.getItem('chico_motoboy_auth') === SENHA) { initMotoboy(); return; }
+    document.getElementById('login-modal').style.display = 'flex';
+}
+function submitLogin() {
+    const input = document.getElementById('login-password').value;
+    const error = document.getElementById('login-error');
+    if (input === SENHA) {
+        localStorage.setItem('chico_motoboy_auth', SENHA);
+        document.getElementById('login-modal').style.display = 'none';
+        error.textContent = '';
+        initMotoboy();
+    } else {
+        error.textContent = 'Senha incorreta. Tente novamente.';
+    }
 }
 function logout() { localStorage.removeItem('chico_motoboy_auth'); window.location.href = '../index.html'; }
+
+function initMotoboy() {
+    iniciarClock();
+    conectarSocket();
+    carregarPedidos();
+    setInterval(carregarPedidos, 5000);
+}
 
 // ===== CONFIG =====
 const API_URL = 'http://localhost:3000/api';
@@ -15,11 +32,7 @@ let pedidos = { pronto: [], saiu_entrega: [], entregue: [] };
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-    if (!verificarLogin()) return;
-    iniciarClock();
-    conectarSocket();
-    carregarPedidos();
-    setInterval(carregarPedidos, 5000);
+    iniciarLogin();
 });
 
 function iniciarClock() {

@@ -71,6 +71,18 @@
         </div>
     </main>
 
+    <div class="login-modal-overlay" id="login-modal">
+        <div class="login-modal-card">
+            <h2>Acesso Cozinha</h2>
+            <p>Digite a senha para acessar o painel da cozinha.</p>
+            <div class="form-group">
+                <label>Senha</label>
+                <input id="login-password" type="password" placeholder="Senha da cozinha">
+                <div class="login-error" id="login-error"></div>
+            </div>
+            <button class="btn btn-primary btn-block" type="button" onclick="submitLogin()">Entrar</button>
+        </div>
+    </div>
     <script src="https://cdn.socket.io/4.5.4/socket.io.js"></script>
     <script src="cozinha.js"></script>
 </body>

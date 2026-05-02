@@ -1,26 +1,28 @@
 const axios = require('axios');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const MERCADO_PAGO_API = 'https://api.mercadopago.com/v1';
-const TOKEN = process.env.MERCADO_PAGO_TOKEN;
-const USE_MOCK = !TOKEN || TOKEN === 'seu-token-aqui';
 
 class MercadoPagoService {
+  static useMock() {
+    const token = process.env.MERCADO_PAGO_TOKEN;
+    return !token || token.trim() === '' || token === 'seu_token_aqui' || token === 'seu-token-aqui';
+  }
+
   static async criarPagamento(pedido) {
-    // ===== MOCK (sem token configurado) =====
-    if (USE_MOCK) {
-      console.log('⚠️  Mercado Pago em modo MOCK - usando pagamento simulado');
-      const fakePaymentId = `mock_${Date.now()}`;
+    if (this.useMock()) {
+      console.log('⚠️  MOCK: Pagamento simulado para pedido', pedido.id);
       return {
         success: true,
-        paymentId: fakePaymentId,
+        paymentId: `mock_${Date.now()}`,
         status: 'pending',
-        qrCode: `https://chico-grill.vercel.app/?pedido=${pedido.id}`, // QR fake
+        qrCode: `mock_qr_${pedido.id}`,
       };
     }
 
-    // ===== PRODUÇÃO (com token real) =====
     try {
+      const TOKEN = process.env.MERCADO_PAGO_TOKEN;
       const response = await axios.post(
         `${MERCADO_PAGO_API}/payments`,
         {
@@ -39,7 +41,6 @@ class MercadoPagoService {
           },
         }
       );
-
       return {
         success: true,
         paymentId: response.data.id,
@@ -47,23 +48,16 @@ class MercadoPagoService {
         qrCode: response.data.point_of_interaction?.transaction_data?.qr_code,
       };
     } catch (error) {
-      console.error('Erro ao criar pagamento:', error.response?.data || error.message);
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Erro ao criar pagamento',
-      };
+      console.error('Erro MP:', error.response?.data || error.message);
+      return { success: false, error: error.response?.data?.message || 'Erro ao criar pagamento' };
     }
   }
 
   static async obterPagamento(paymentId) {
-    // ===== MOCK =====
-    if (USE_MOCK || String(paymentId).startsWith('mock_')) {
-      console.log('⚠️  Verificando pagamento em modo MOCK');
-      // Simula aprovação automática após 5 segundos do mock criado
+    if (this.useMock() || String(paymentId).startsWith('mock_')) {
       const createdAt = parseInt(String(paymentId).replace('mock_', '')) || 0;
-      const elapsed = Date.now() - createdAt;
-      const approved = elapsed > 5000; // aprova depois de 5s
-
+      const approved = Date.now() - createdAt > 5000;
+      console.log(`⚠️  MOCK: pagamento ${approved ? 'aprovado' : 'pendente'}`);
       return {
         success: true,
         status: { status: approved ? 'approved' : 'pending' },
@@ -71,36 +65,20 @@ class MercadoPagoService {
       };
     }
 
-    // ===== PRODUÇÃO =====
     try {
-      const response = await axios.get(
-        `${MERCADO_PAGO_API}/payments/${paymentId}`,
-        {
-          headers: { Authorization: `Bearer ${TOKEN}` },
-        }
-      );
-
-      return {
-        success: true,
-        status: response.data.status,
-        statusDetail: response.data.status_detail,
-      };
+      const TOKEN = process.env.MERCADO_PAGO_TOKEN;
+      const response = await axios.get(`${MERCADO_PAGO_API}/payments/${paymentId}`, {
+        headers: { Authorization: `Bearer ${TOKEN}` },
+      });
+      return { success: true, status: response.data.status, statusDetail: response.data.status_detail };
     } catch (error) {
-      console.error('Erro ao obter pagamento:', error.message);
-      return {
-        success: false,
-        error: 'Erro ao obter status do pagamento',
-      };
+      console.error('Erro MP:', error.message);
+      return { success: false, error: 'Erro ao obter status' };
     }
   }
 
   static async verificarWebhook(data) {
-    if (data.type === 'payment') {
-      return {
-        paymentId: data.data.id,
-        status: data.action,
-      };
-    }
+    if (data.type === 'payment') return { paymentId: data.data.id, status: data.action };
     return null;
   }
 }

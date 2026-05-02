@@ -39,10 +39,13 @@ async function createTables() {
         nome_cliente VARCHAR(255) NOT NULL,
         endereco TEXT NOT NULL,
         telefone VARCHAR(20),
+        cpf VARCHAR(20),
         status VARCHAR(50) DEFAULT 'aguardando_pagamento',
         total DECIMAL(10, 2) NOT NULL,
         payment_id VARCHAR(255),
         payment_status VARCHAR(50),
+        avaliacao_estrela INTEGER,
+        avaliacao_comentario TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -73,6 +76,11 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Colunas adicionais para pedidos
+    await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cpf VARCHAR(20);`);
+    await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS avaliacao_estrela INTEGER;`);
+    await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS avaliacao_comentario TEXT;`);
 
     console.log('✅ Tabelas criadas com sucesso!');
     return true;

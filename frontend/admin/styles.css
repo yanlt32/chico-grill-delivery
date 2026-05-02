@@ -124,6 +124,45 @@ body {
 
 .btn-logout:hover { border-color: var(--primary); color: var(--primary); }
 
+.login-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1.5rem;
+}
+
+.login-modal-card {
+    width: min(420px, 100%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+}
+
+.login-modal-card h2 {
+    margin: 0 0 0.65rem 0;
+    font-size: 1.45rem;
+    letter-spacing: 0.5px;
+}
+
+.login-modal-card p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.login-error {
+    min-height: 1.5rem;
+    margin-top: 0.5rem;
+    color: #ff6b55;
+    font-size: 0.88rem;
+}
+
 .clock {
     font-family: 'Space Mono', monospace;
     font-size: 1.1rem;

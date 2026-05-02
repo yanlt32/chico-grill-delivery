@@ -12,10 +12,13 @@ class Pedido {
           nome_cliente: dados.nome_cliente,
           endereco: dados.endereco,
           telefone: dados.telefone,
+          cpf: dados.cpf || null,
           status: 'aguardando_pagamento',
           total: dados.total,
           payment_id: null,
           payment_status: null,
+          avaliacao_estrela: null,
+          avaliacao_comentario: null,
           created_at: new Date(),
           updated_at: new Date(),
         };
@@ -24,10 +27,10 @@ class Pedido {
       }
 
       const result = await db.query(
-        `INSERT INTO pedidos (id, nome_cliente, endereco, telefone, total)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO pedidos (id, nome_cliente, endereco, telefone, cpf, total)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [id, dados.nome_cliente, dados.endereco, dados.telefone, dados.total]
+        [id, dados.nome_cliente, dados.endereco, dados.telefone, dados.cpf || null, dados.total]
       );
       return result.rows[0];
     } catch (error) {
@@ -152,6 +155,32 @@ class Pedido {
       return result.rows[0];
     } catch (error) {
       console.error('Erro ao atualizar pagamento:', error);
+      throw error;
+    }
+  }
+
+  static async atualizarAvaliacao(id, estrela, comentario) {
+    try {
+      if (db.USE_MEMORY) {
+        const pedido = db.memoryData.pedidos.find(p => p.id === id);
+        if (!pedido) throw new Error('Pedido não encontrado');
+
+        pedido.avaliacao_estrela = estrela;
+        pedido.avaliacao_comentario = comentario || null;
+        pedido.updated_at = new Date();
+        return pedido;
+      }
+
+      const result = await db.query(
+        `UPDATE pedidos
+         SET avaliacao_estrela = $1, avaliacao_comentario = $2, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3
+         RETURNING *`,
+        [estrela, comentario || null, id]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.error('Erro ao atualizar avaliação:', error);
       throw error;
     }
   }
