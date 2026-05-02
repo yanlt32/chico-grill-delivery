@@ -26,8 +26,13 @@ function initMotoboy() {
 }
 
 // ===== CONFIG =====
-const API_URL = 'http://localhost:3000/api';
-const socket = io('http://localhost:3000', { reconnection: true });
+const API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000/api'
+    : '/api';
+const socketUrl = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : window.location.origin;
+const socket = io(socketUrl, { reconnection: true });
 let pedidos = { pronto: [], saiu_entrega: [], entregue: [] };
 
 // ===== INIT =====
