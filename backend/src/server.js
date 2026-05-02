@@ -75,11 +75,17 @@ const CARDAPIO = {
 };
 
 // ===== ROTAS =====
-app.get('/', (req, res) => res.json({ status: 'OK', message: '🍔 CHICO GRILL API' }));
 app.get('/api/cardapio', (req, res) => res.json({ success: true, cardapio: CARDAPIO }));
 app.get('/health', (req, res) => res.json({ status: 'OK' }));
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
+
+const frontendPath = path.resolve(__dirname, '../../frontend');
+app.use(express.static(frontendPath));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path === '/health') return next();
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
 
 // ===== SOCKET.IO =====
 io.on('connection', (socket) => {

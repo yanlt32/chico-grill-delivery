@@ -1,21 +1,13 @@
 services:
   - type: web
-    name: chico-grill-api
+    name: chico-grill-delivery
     env: node
     plan: free
     region: oregon
-    buildCommand: cd backend && npm install
-    startCommand: npm start
-    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run start
     envVars:
       - key: PORT
         value: 3000
       - key: NODE_ENV
         value: production
-
-  - type: web
-    name: chico-grill-frontend
-    env: static
-    plan: free
-    buildCommand: echo "No build needed"
-    staticPublishPath: frontend

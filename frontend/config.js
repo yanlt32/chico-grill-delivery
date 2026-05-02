@@ -1,6 +1,7 @@
 // Frontend API endpoint configuration.
-// Local development fallback:
-window.API_URL = window.API_URL || 'http://localhost:3000/api';
+// Local development fallback when frontend is served on localhost.
+window.API_URL = window.API_URL || (window.location.hostname === 'localhost'
+  ? 'http://localhost:3000/api'
+  : '/api');
 
-// When deploying on Render, override this value with your backend service URL:
-// window.API_URL = 'https://chico-grill-api.onrender.com/api';
+// For a single-service deployment on Render, the backend is served from the same origin.
