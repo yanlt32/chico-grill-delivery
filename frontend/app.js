@@ -1,5 +1,7 @@
 // ===== CONFIG =====
-const API_URL = window.API_URL || 'http://localhost:3000/api';
+const API_URL = window.API_URL || (window.location.hostname === 'localhost'
+    ? 'http://localhost:3000/api'
+    : '/api');
 
 const IMAGENS = {
     espetos: 'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?auto=format&fit=crop&w=600&q=80',
@@ -517,7 +519,10 @@ function atualizarStatusPedido(pedidoId, novoStatus) {
 
 // ===== SOCKET.IO =====
 function conectarSocket() {
-    socket = io('http://localhost:3000', { reconnection: true });
+    const socketUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:3000'
+        : window.location.origin;
+    socket = io(socketUrl, { reconnection: true });
     socket.on('connect', ()=>console.log('🔌 Socket conectado'));
     socket.on('status_atualizado', data => {
         if (pedidoAtual && pedidoAtual.id === data.pedidoId) {
