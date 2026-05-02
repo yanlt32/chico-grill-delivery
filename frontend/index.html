@@ -17,7 +17,13 @@
                         <span>Carrinho</span>
                         <span class="carrinho-count" id="carrinho-count">0</span>
                     </button>
-                    <button class="btn btn-secondary btn-block header-btn" onclick="abrirAcompanhamentoModal()">
+                    <button class="btn btn-secondary btn-block header-btn" id="btn-login" onclick="abrirLoginModal()">
+                        Entrar / Criar
+                    </button>
+                    <button class="btn btn-secondary btn-block header-btn" id="btn-user" onclick="abrirDashboard()" style="display:none">
+                        👤 Minha Conta
+                    </button>
+                    <button class="btn btn-secondary btn-block header-btn" onclick="abrirAcompanhamento()">
                         👀 Meus pedidos
                     </button>
                 </div>
@@ -209,16 +215,108 @@
                     </div>
                 </div>
 
+                <div id="view-dashboard" class="view">
+                    <div class="page-header">
+                        <h1>Minha Conta</h1>
+                        <button class="btn-voltar" onclick="voltarCardapio()">← Voltar</button>
+                    </div>
+                    <div class="perfil-wrapper">
+                        <div class="perfil-card">
+                            <h2>Olá, <span id="perfil-nome">Cliente</span></h2>
+                            <p id="perfil-email" class="perfil-email"></p>
+                            <p id="perfil-cpf" class="perfil-texto"></p>
+                            <p id="perfil-telefone" class="perfil-texto"></p>
+                            <div class="perfil-actions">
+                                <button class="btn btn-secondary" onclick="logoutUsuario()">Sair</button>
+                                <button class="btn btn-primary" onclick="abrirAcompanhamento()">Acompanhar último pedido</button>
+                            </div>
+                        </div>
+                        <div class="pedidos-card">
+                            <h3>Pedidos recentes</h3>
+                            <div id="usuario-pedidos" class="pedidos-list"></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
 
         <footer class="footer">
-            <p>🍔 CHICO GRILL Delivery | © 2024</p>
+            <p>🍔 CHICO GRILL Delivery | Desenvolvido por Yan Tortelli — <a href="https://www.linkedin.com/in/yantortelli" target="_blank" rel="noreferrer">linkedin.com/in/yantortelli</a> — 2026</p>
             <div class="footer-admin">
-                <a href="admin/cozinha.html" class="btn-admin">👨‍🍳 Cozinha</a>
-                <a href="admin/motoboy.html" class="btn-admin">🛵 Motoboy</a>
+                <button class="btn-admin" type="button" onclick="abrirAcessoModal()">🔐 Acesso interno</button>
             </div>
         </footer>
+    </div>
+
+    <div class="modal-overlay" id="access-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Acessar painel</h2>
+                <button class="modal-close" type="button" onclick="fecharAcessoModal()">✕</button>
+            </div>
+            <p>Escolha o painel que deseja acessar:</p>
+            <div class="admin-choice-grid">
+                <button class="btn btn-primary btn-block" type="button" onclick="window.location.href='admin/dashboard.html'">🧠 Admin</button>
+                <button class="btn btn-secondary btn-block" type="button" onclick="window.location.href='admin/cozinha.html'">👨‍🍳 Cozinha</button>
+                <button class="btn btn-secondary btn-block" type="button" onclick="window.location.href='admin/motoboy.html'">🛵 Motoboy</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="login-modal" style="display:none">
+        <div class="modal-card modal-auth-card">
+            <div class="modal-header">
+                <h2>Entrar na sua conta</h2>
+                <button class="modal-close" onclick="fecharModalLogin()">✕</button>
+            </div>
+            <form onsubmit="loginUsuario(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="login-password" required placeholder="Senha segura">
+                </div>
+                <div class="login-error" id="login-error"></div>
+                <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+                <button type="button" class="btn btn-secondary btn-block" onclick="abrirCadastroModal()">Criar nova conta</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="cadastro-modal" style="display:none">
+        <div class="modal-card modal-auth-card">
+            <div class="modal-header">
+                <h2>Criar conta</h2>
+                <button class="modal-close" onclick="fecharCadastroModal()">✕</button>
+            </div>
+            <form onsubmit="cadastrarUsuario(event)">
+                <div class="form-group">
+                    <label>Nome completo</label>
+                    <input type="text" id="cadastro-nome" required placeholder="Seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="cadastro-email" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Telefone</label>
+                    <input type="tel" id="cadastro-telefone" required placeholder="(00) 9 0000-0000">
+                </div>
+                <div class="form-group">
+                    <label>CPF</label>
+                    <input type="text" id="cadastro-cpf" required placeholder="000.000.000-00" maxlength="14">
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="cadastro-senha" required placeholder="Crie sua senha">
+                </div>
+                <div class="login-error" id="cadastro-error"></div>
+                <button type="submit" class="btn btn-primary btn-block">Criar conta</button>
+            </form>
+        </div>
     </div>
 
     <div class="modal-overlay" id="pedido-modal" style="display:none">

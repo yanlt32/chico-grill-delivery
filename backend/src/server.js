@@ -74,8 +74,36 @@ const CARDAPIO = {
   ],
 };
 
+const CARDAPIO_OVERRIDES = {};
+
+function aplicarOverrides(cardapio) {
+  return Object.keys(cardapio).reduce((acc, cat) => {
+    acc[cat] = cardapio[cat].map(item => ({
+      ...item,
+      preco: CARDAPIO_OVERRIDES[item.id] !== undefined ? CARDAPIO_OVERRIDES[item.id] : item.preco,
+    }));
+    return acc;
+  }, {});
+}
+
 // ===== ROTAS =====
-app.get('/api/cardapio', (req, res) => res.json({ success: true, cardapio: CARDAPIO }));
+app.get('/api/cardapio', (req, res) => res.json({ success: true, cardapio: aplicarOverrides(CARDAPIO) }));
+app.put('/api/admin/cardapio', (req, res) => {
+  const { updates } = req.body;
+  if (!updates || typeof updates !== 'object') {
+    return res.status(400).json({ error: 'Updates de cardápio inválidos' });
+  }
+
+  Object.keys(updates).forEach(key => {
+    const value = parseFloat(updates[key]);
+    if (!Number.isNaN(value)) {
+      CARDAPIO_OVERRIDES[key] = value;
+    }
+  });
+
+  res.json({ success: true, overrides: CARDAPIO_OVERRIDES });
+});
+
 app.get('/health', (req, res) => res.json({ status: 'OK' }));
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
@@ -87,33 +115,6 @@ app.get('*', (req, res, next) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// ===== SOCKET.IO =====
-io.on('connection', (socket) => {
-  console.log(`👤 Cliente conectado: ${socket.id}`);
-
-  socket.on('acompanhar_pedido', (pedidoId) => {
-    socket.join(`pedido_${pedidoId}`);
-    console.log(`📍 Acompanhando pedido: ${pedidoId}`);
-  });
-
-  socket.on('sair_acompanhamento', (pedidoId) => socket.leave(`pedido_${pedidoId}`));
-
-  socket.on('conectar_cozinha', () => {
-    socket.join('cozinha');
-    console.log('👨‍🍳 Cozinha conectada');
-  });
-
-  socket.on('conectar_motoboy', () => {
-    socket.join('motoboy');
-    console.log('🛵 Motoboy conectado');
-  });
-
-  socket.on('disconnect', () => console.log(`👋 Desconectado: ${socket.id}`));
-});
-
-module.exports = { app, io, notificarMudancaPedido };
-
-// ===== START =====
 const PORT = process.env.PORT || 3000;
 async function iniciar() {
   try {

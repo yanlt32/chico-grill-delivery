@@ -12,12 +12,12 @@ function notificar(req, pedidoId, status) {
 // POST - Criar pedido
 router.post('/', async (req, res) => {
   try {
-    const { nome_cliente, endereco, telefone, cpf, itens, forma_pagamento, troco_para } = req.body;
+    const { nome_cliente, endereco, telefone, cpf, itens, forma_pagamento, troco_para, user_email } = req.body;
     if (!nome_cliente || !endereco || !cpf || !itens || itens.length === 0)
       return res.status(400).json({ error: 'Nome, endereço, CPF e itens são obrigatórios' });
 
     const total = itens.reduce((sum, item) => sum + item.preco * item.quantidade, 0);
-    const pedido = await Pedido.criar({ nome_cliente, endereco, telefone, cpf, total, forma_pagamento, troco_para });
+    const pedido = await Pedido.criar({ nome_cliente, endereco, telefone, cpf, total, user_email });
     await Pedido.adicionarItens(pedido.id, itens);
 
     // Cartão/Dinheiro já vão direto como pago
@@ -37,8 +37,8 @@ router.post('/', async (req, res) => {
 // GET - Todos
 router.get('/', async (req, res) => {
   try {
-    const { status } = req.query;
-    const pedidos = await Pedido.obterTodos({ status });
+    const { status, user_email } = req.query;
+    const pedidos = await Pedido.obterTodos({ status, user_email });
     res.json({ success: true, pedidos });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao obter pedidos' });
@@ -48,8 +48,12 @@ router.get('/', async (req, res) => {
 // GET - Por ID
 router.get('/:id', async (req, res) => {
   try {
+    const { user_email } = req.query;
     const pedido = await Pedido.obterComItens(req.params.id);
     if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+    if (pedido.user_email && pedido.user_email !== user_email) {
+      return res.status(403).json({ error: 'Acesso negado a este pedido' });
+    }
     res.json({ success: true, pedido });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao obter pedido' });

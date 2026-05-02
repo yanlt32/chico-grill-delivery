@@ -1,6 +1,6 @@
 // ===== CONFIG =====
-const API_URL = window.API_URL || (window.location.hostname === 'localhost'
-    ? 'http://localhost:3000/api'
+const API_URL = window.API_URL || (window.location.port === '5000'
+    ? `${window.location.protocol}//${window.location.hostname}:3000/api`
     : '/api');
 
 const IMAGENS = {
@@ -32,13 +32,17 @@ let pedidoAtual = null;
 let socket = null;
 let formaPagamentoSelecionada = 'pix';
 const ORDER_STORAGE_KEY = 'chico_pedido_id';
+const USERS_KEY = 'chico_users';
+const SESSION_KEY = 'chico_user_session';
+let usuarioLogado = null;
 let ratingSelecionado = 0;
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
+    criarToastContainer();
+    carregarSessaoUsuario();
     carregarCardapio();
     conectarSocket();
-    criarToastContainer();
 });
 
 function criarToastContainer() {
@@ -46,6 +50,244 @@ function criarToastContainer() {
     tc.className = 'toast-container';
     tc.id = 'toast-container';
     document.body.appendChild(tc);
+}
+
+function carregarSessaoUsuario() {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return;
+    try {
+        usuarioLogado = JSON.parse(raw);
+    } catch (error) {
+        usuarioLogado = null;
+    }
+    atualizarCabecalhoUsuario();
+    preencherFormularioDados();
+}
+
+function salvarSessaoUsuario() {
+    if (usuarioLogado) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(usuarioLogado));
+    } else {
+        localStorage.removeItem(SESSION_KEY);
+    }
+}
+
+function atualizarCabecalhoUsuario() {
+    const btnLogin = document.getElementById('btn-login');
+    const btnUser = document.getElementById('btn-user');
+    if (!btnLogin || !btnUser) return;
+    if (usuarioLogado) {
+        btnLogin.textContent = `Olá, ${usuarioLogado.nome.split(' ')[0]}`;
+        btnLogin.onclick = abrirDashboard;
+        btnUser.style.display = 'inline-flex';
+    } else {
+        btnLogin.textContent = 'Entrar / Criar';
+        btnLogin.onclick = abrirLoginModal;
+        btnUser.style.display = 'none';
+    }
+}
+
+function getUsuarios() {
+    try {
+        return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+    } catch (error) {
+        return [];
+    }
+}
+
+function salvarUsuarios(usuarios) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(usuarios));
+}
+
+function abrirLoginModal() {
+    document.getElementById('login-modal').style.display = 'flex';
+}
+
+function fecharModalLogin() {
+    document.getElementById('login-modal').style.display = 'none';
+}
+
+function abrirAcessoModal() {
+    document.getElementById('access-modal').style.display = 'flex';
+}
+
+function fecharAcessoModal() {
+    document.getElementById('access-modal').style.display = 'none';
+}
+
+function abrirCadastroModal() {
+    fecharModalLogin();
+    document.getElementById('cadastro-modal').style.display = 'flex';
+}
+
+function fecharCadastroModal() {
+    document.getElementById('cadastro-modal').style.display = 'none';
+}
+
+function loginUsuario(event) {
+    event.preventDefault();
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const senha = document.getElementById('login-password').value;
+    const error = document.getElementById('login-error');
+    if (!email || !senha) {
+        error.textContent = 'Preencha email e senha para continuar.';
+        return;
+    }
+    const usuarios = getUsuarios();
+    const user = usuarios.find(u => u.email === email && u.senha === senha);
+    if (!user) {
+        error.textContent = 'Email ou senha incorretos.';
+        return;
+    }
+    usuarioLogado = { nome: user.nome, email: user.email, telefone: user.telefone, cpf: user.cpf, lastOrderId: user.lastOrderId || null };
+    salvarSessaoUsuario();
+    atualizarCabecalhoUsuario();
+    preencherFormularioDados();
+    fecharModalLogin();
+    error.textContent = '';
+    showToast('Login realizado com sucesso!');
+    if (usuarioLogado.lastOrderId) carregarDashboard();
+}
+
+function cadastrarUsuario(event) {
+    event.preventDefault();
+    const nome = document.getElementById('cadastro-nome').value.trim();
+    const email = document.getElementById('cadastro-email').value.trim().toLowerCase();
+    const telefone = document.getElementById('cadastro-telefone').value.trim();
+    const cpf = document.getElementById('cadastro-cpf').value.trim();
+    const senha = document.getElementById('cadastro-senha').value;
+    const error = document.getElementById('cadastro-error');
+
+    if (!nome || !email || !telefone || !cpf || !senha) {
+        error.textContent = 'Preencha todos os campos para criar a conta.';
+        return;
+    }
+    if (cpf.replace(/\D/g, '').length !== 11) {
+        error.textContent = 'CPF inválido. Use 11 dígitos.';
+        return;
+    }
+    const usuarios = getUsuarios();
+    if (usuarios.some(u => u.email === email)) {
+        error.textContent = 'Este email já está cadastrado.';
+        return;
+    }
+
+    usuarios.push({ nome, email, telefone, cpf: cpf.replace(/\D/g, ''), senha, lastOrderId: null });
+    salvarUsuarios(usuarios);
+    usuarioLogado = { nome, email, telefone, cpf: cpf.replace(/\D/g, ''), lastOrderId: null };
+    salvarSessaoUsuario();
+    atualizarCabecalhoUsuario();
+    preencherFormularioDados();
+    fecharCadastroModal();
+    error.textContent = '';
+    showToast('Conta criada com sucesso!');
+    abrirDashboard();
+}
+
+function logoutUsuario() {
+    usuarioLogado = null;
+    salvarSessaoUsuario();
+    atualizarCabecalhoUsuario();
+    showToast('Você saiu da conta.');
+    mudarView('cardapio');
+}
+
+function preencherFormularioDados() {
+    if (!usuarioLogado) return;
+    const nomeInput = document.getElementById('nome-cliente');
+    const telefoneInput = document.getElementById('telefone');
+    const cpfInput = document.getElementById('cpf-cliente');
+    const enderecoInput = document.getElementById('endereco');
+
+    if (nomeInput) nomeInput.value = usuarioLogado.nome || '';
+    if (telefoneInput) telefoneInput.value = usuarioLogado.telefone || '';
+    if (cpfInput) cpfInput.value = formatarCPF(usuarioLogado.cpf || '');
+    if (enderecoInput) enderecoInput.value = enderecoInput.value || '';
+}
+
+function formatarCPF(value) {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+}
+
+function abrirDashboard() {
+    if (!usuarioLogado) { abrirLoginModal(); return; }
+    carregarDashboard();
+}
+
+function carregarDashboard() {
+    if (!usuarioLogado) return;
+    fetch(`${API_URL}/pedidos?user_email=${encodeURIComponent(usuarioLogado.email)}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) return;
+            renderizarDashboard(data.pedidos || []);
+            mudarView('dashboard');
+        })
+        .catch(() => showToast('Erro ao carregar seus pedidos.', 'erro'));
+}
+
+function renderizarDashboard(pedidos) {
+    document.getElementById('perfil-nome').textContent = usuarioLogado.nome;
+    document.getElementById('perfil-email').textContent = usuarioLogado.email;
+    document.getElementById('perfil-cpf').textContent = `CPF: ${formatarCPF(usuarioLogado.cpf)}`;
+    document.getElementById('perfil-telefone').textContent = `Telefone: ${usuarioLogado.telefone}`;
+
+    const container = document.getElementById('usuario-pedidos');
+    if (!pedidos || pedidos.length === 0) {
+        container.innerHTML = `<div class="vazio">Você ainda não fez pedidos. Faça o primeiro agora!</div>`;
+        return;
+    }
+    container.innerHTML = pedidos.map(p => `
+        <div class="pedido-card user-card">
+            <div class="card-top">
+                <div class="card-id">Pedido <span>#${p.id.slice(0,8)}</span></div>
+                <div class="card-badge ${p.status}">${p.status.replace('_', ' ')}</div>
+            </div>
+            <div class="card-body">
+                <div class="card-cliente">Total R$ ${((p.total||0)+5).toFixed(2)}</div>
+                <div class="card-telefone">${p.endereco || ''}</div>
+                <div class="card-itens">${(p.itens || []).map(i => `${i.quantidade}x ${i.nome_produto}`).join(', ')}</div>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary btn-block" onclick="carregarAcompanhamento('${p.id}', '${usuarioLogado?.email || ''}')">Acompanhar</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function abrirAcompanhamento() {
+    if (!usuarioLogado) { abrirLoginModal(); return; }
+    const pedidoId = localStorage.getItem(ORDER_STORAGE_KEY) || usuarioLogado.lastOrderId;
+    if (pedidoId) {
+        carregarAcompanhamento(pedidoId, usuarioLogado.email);
+    } else {
+        abrirDashboard();
+    }
+}
+
+function carregarAcompanhamento(pedidoId, userEmail = null) {
+    const email = userEmail || usuarioLogado?.email || null;
+    const query = email ? `?user_email=${encodeURIComponent(email)}` : '';
+    fetch(`${API_URL}/pedidos/${pedidoId}${query}`)
+    .then(r => r.json().then(data => ({ status: r.status, body: data })))
+    .then(({ status, body }) => {
+        if (status === 403) {
+            showToast('Pedido não pertence à conta atual.', 'erro');
+            return;
+        }
+        if (status === 404 || !body.success) {
+            showToast(body.error || 'Pedido não encontrado. Verifique o código.', 'erro');
+            return;
+        }
+        pedidoAtual = { ...pedidoAtual, ...body.pedido };
+        renderizarAcompanhamento(pedidoAtual);
+        mudarView('acompanhamento');
+        if (socket) socket.emit('acompanhar_pedido', pedidoId);
+    })
+    .catch(() => {
+        showToast('Erro de conexão ao buscar pedido. Tente novamente.', 'erro');
+    });
 }
 
 // ===== CARDÁPIO =====
@@ -188,6 +430,7 @@ function voltarCheckout() { mudarView('checkout'); }
 // ===== PEDIDO =====
 function confirmarPedido(event) {
     event.preventDefault();
+    if (!usuarioLogado) { abrirLoginModal(); showToast('Faça login ou crie conta para finalizar o pedido','info'); return; }
     if (!carrinho.length) { showToast('Carrinho vazio','erro'); return; }
     const nome = document.getElementById('nome-cliente').value.trim();
     const endereco = document.getElementById('endereco').value.trim();
@@ -216,6 +459,7 @@ function confirmarPedido(event) {
         endereco,
         telefone,
         cpf: cpfLimpo,
+        user_email: usuarioLogado?.email || null,
         forma_pagamento: formaPagamentoSelecionada,
         troco_para: trocoPara ? parseFloat(trocoPara.replace(',','.')) : null,
         itens: carrinho.map(i=>({ nome:i.nome, categoria:i.categoria, quantidade:i.quantidade, preco:i.preco, observacoes: obs })),
@@ -233,6 +477,8 @@ function confirmarPedido(event) {
             pedidoAtual._forma = formaPagamentoSelecionada;
             pedidoAtual._troco = trocoPara ? parseFloat(trocoPara.replace(',','.')) : null;
             localStorage.setItem(ORDER_STORAGE_KEY, pedidoAtual.id);
+            usuarioLogado.lastOrderId = pedidoAtual.id;
+            salvarSessaoUsuario();
 
             if (formaPagamentoSelecionada === 'pix') {
                 mudarView('pagamento');
@@ -319,7 +565,7 @@ function exibirConfirmacao(pedido, total, tempo) {
 }
 
 function irParaAcompanhamento() {
-    if (pedidoAtual) carregarAcompanhamento(pedidoAtual.id);
+    if (pedidoAtual) carregarAcompanhamento(pedidoAtual.id, usuarioLogado?.email);
 }
 
 // ===== PAGAMENTO PIX =====
@@ -382,24 +628,6 @@ function monitorarPagamento(pedidoId, paymentId) {
 }
 
 // ===== ACOMPANHAMENTO =====
-function carregarAcompanhamento(pedidoId) {
-    fetch(`${API_URL}/pedidos/${pedidoId}`)
-    .then(r => r.json().then(data => ({ status: r.status, body: data })))
-    .then(({ status, body }) => {
-        if (status === 404 || !body.success) {
-            showToast(body.error || 'Pedido não encontrado. Verifique o código.', 'erro');
-            return;
-        }
-        pedidoAtual = { ...pedidoAtual, ...body.pedido };
-        renderizarAcompanhamento(pedidoAtual);
-        mudarView('acompanhamento');
-        if (socket) socket.emit('acompanhar_pedido', pedidoId);
-    })
-    .catch(() => {
-        showToast('Erro de conexão ao buscar pedido. Tente novamente.', 'erro');
-    });
-}
-
 function renderizarAcompanhamento(pedido) {
     const statusOrder = ['aguardando_pagamento','pago','em_preparo','pronto','saiu_entrega','entregue'];
     const infoDiv = document.getElementById('pedido-info');
@@ -450,7 +678,7 @@ function consultarPedidoPorId() {
     const pedidoId = document.getElementById('pedido-id-input').value.trim();
     if (!pedidoId) { showToast('Digite o código do pedido', 'erro'); return; }
     fecharModalPedido();
-    carregarAcompanhamento(pedidoId);
+    carregarAcompanhamento(pedidoId, usuarioLogado?.email);
 }
 
 function renderizarAvaliacao(pedido) {
@@ -519,8 +747,8 @@ function atualizarStatusPedido(pedidoId, novoStatus) {
 
 // ===== SOCKET.IO =====
 function conectarSocket() {
-    const socketUrl = window.location.hostname === 'localhost'
-        ? 'http://localhost:3000'
+    const socketUrl = window.location.port === '5000'
+        ? `${window.location.protocol}//${window.location.hostname}:3000`
         : window.location.origin;
     socket = io(socketUrl, { reconnection: true });
     socket.on('connect', ()=>console.log('🔌 Socket conectado'));
@@ -550,5 +778,5 @@ function fecharModalAdmin() {
 
 window.addEventListener('load', () => {
     const pedidoId = new URLSearchParams(window.location.search).get('pedido_id');
-    if (pedidoId) carregarAcompanhamento(pedidoId);
+    if (pedidoId) carregarAcompanhamento(pedidoId, usuarioLogado?.email);
 });

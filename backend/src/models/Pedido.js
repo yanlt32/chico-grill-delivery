@@ -13,6 +13,7 @@ class Pedido {
           endereco: dados.endereco,
           telefone: dados.telefone,
           cpf: dados.cpf || null,
+          user_email: dados.user_email || null,
           status: 'aguardando_pagamento',
           total: dados.total,
           payment_id: null,
@@ -27,10 +28,10 @@ class Pedido {
       }
 
       const result = await db.query(
-        `INSERT INTO pedidos (id, nome_cliente, endereco, telefone, cpf, total)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO pedidos (id, nome_cliente, endereco, telefone, cpf, user_email, total)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
-        [id, dados.nome_cliente, dados.endereco, dados.telefone, dados.cpf || null, dados.total]
+        [id, dados.nome_cliente, dados.endereco, dados.telefone, dados.cpf || null, dados.user_email || null, dados.total]
       );
       return result.rows[0];
     } catch (error) {
@@ -63,15 +64,26 @@ class Pedido {
         if (filtro.status) {
           pedidos = pedidos.filter(p => p.status === filtro.status);
         }
+        if (filtro.user_email) {
+          pedidos = pedidos.filter(p => p.user_email === filtro.user_email);
+        }
         return pedidos.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       }
 
       let query = 'SELECT * FROM pedidos';
       const params = [];
+      const where = [];
 
       if (filtro.status) {
-        query += ' WHERE status = $1';
+        where.push(`status = $${params.length + 1}`);
         params.push(filtro.status);
+      }
+      if (filtro.user_email) {
+        where.push(`user_email = $${params.length + 1}`);
+        params.push(filtro.user_email);
+      }
+      if (where.length > 0) {
+        query += ' WHERE ' + where.join(' AND ');
       }
 
       query += ' ORDER BY created_at DESC';

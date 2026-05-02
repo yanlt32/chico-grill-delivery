@@ -1,19 +1,20 @@
 // ===== AUTH =====
-const SENHA = 'motoboy123';
+const MOTOBOY_CREDENTIALS = { email: 'motoboy@chicogrill.com', senha: 'Motoboy2026!' };
 function iniciarLogin() {
-    if (localStorage.getItem('chico_motoboy_auth') === SENHA) { initMotoboy(); return; }
+    if (localStorage.getItem('chico_motoboy_auth') === MOTOBOY_CREDENTIALS.email) { initMotoboy(); return; }
     document.getElementById('login-modal').style.display = 'flex';
 }
 function submitLogin() {
-    const input = document.getElementById('login-password').value;
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const senha = document.getElementById('login-password').value;
     const error = document.getElementById('login-error');
-    if (input === SENHA) {
-        localStorage.setItem('chico_motoboy_auth', SENHA);
+    if (email === MOTOBOY_CREDENTIALS.email && senha === MOTOBOY_CREDENTIALS.senha) {
+        localStorage.setItem('chico_motoboy_auth', MOTOBOY_CREDENTIALS.email);
         document.getElementById('login-modal').style.display = 'none';
         error.textContent = '';
         initMotoboy();
     } else {
-        error.textContent = 'Senha incorreta. Tente novamente.';
+        error.textContent = 'Email ou senha incorretos. Tente novamente.';
     }
 }
 function logout() { localStorage.removeItem('chico_motoboy_auth'); window.location.href = '../index.html'; }
@@ -26,11 +27,13 @@ function initMotoboy() {
 }
 
 // ===== CONFIG =====
-const API_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:3000/api'
-    : '/api';
-const socketUrl = window.location.hostname === 'localhost'
-    ? 'http://localhost:3000'
+const API_URL = window.location.port === '5000'
+    ? `${window.location.protocol}//${window.location.hostname}:3000/api`
+    : (window.location.hostname === 'localhost'
+        ? 'http://localhost:3000/api'
+        : '/api');
+const socketUrl = window.location.port === '5000'
+    ? `${window.location.protocol}//${window.location.hostname}:3000`
     : window.location.origin;
 const socket = io(socketUrl, { reconnection: true });
 let pedidos = { pronto: [], saiu_entrega: [], entregue: [] };

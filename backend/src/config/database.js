@@ -80,6 +80,7 @@ async function createTables() {
 
     // Colunas adicionais para pedidos
     await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cpf VARCHAR(20);`);
+    await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS user_email VARCHAR(255);`);
     await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS avaliacao_estrela INTEGER;`);
     await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS avaliacao_comentario TEXT;`);
 
