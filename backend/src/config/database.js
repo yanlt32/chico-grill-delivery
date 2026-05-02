@@ -1,7 +1,8 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const USE_MEMORY = process.env.USE_MEMORY === 'true';
+const hasDbConfig = !!(process.env.DB_HOST || process.env.DATABASE_URL || process.env.DB_USER || process.env.DB_NAME);
+const USE_MEMORY = process.env.USE_MEMORY === 'true' || !hasDbConfig;
 
 let pool = null;
 
