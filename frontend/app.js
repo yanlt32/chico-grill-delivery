@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Verificar pedido na URL
     const pedidoId = new URLSearchParams(window.location.search).get('pedido_id');
     if (pedidoId) carregarAcompanhamento(pedidoId, usuarioLogado?.email);
+    
 });
 
 function initHamburgerEvents() {
@@ -157,16 +158,34 @@ function salvarSessaoUsuario() {
 function atualizarCabecalhoUsuario() {
     const btnLogin = document.getElementById('btn-login');
     const btnUser = document.getElementById('btn-user');
+    const btnLoginMobile = document.getElementById('btn-login-mobile');
+    const btnLogoutMobile = document.getElementById('menu-logout');
+    const menuUserName = document.getElementById('menu-user-name');
     if (!btnLogin || !btnUser) return;
     if (usuarioLogado) {
         btnLogin.textContent = `Olá, ${usuarioLogado.nome.split(' ')[0]}`;
         btnLogin.onclick = () => { abrirDashboard(); closeMenu(); };
         btnUser.style.display = 'inline-flex';
+        if (btnLoginMobile) btnLoginMobile.style.display = 'none';
+        if (btnLogoutMobile) btnLogoutMobile.style.display = 'inline-flex';
+        if (menuUserName) { menuUserName.textContent = usuarioLogado.nome; menuUserName.style.display = 'block'; }
     } else {
         btnLogin.textContent = 'Entrar / Criar';
         btnLogin.onclick = () => { abrirLoginModal(); closeMenu(); };
         btnUser.style.display = 'none';
+        if (btnLoginMobile) btnLoginMobile.style.display = 'block';
+        if (btnLogoutMobile) btnLogoutMobile.style.display = 'none';
+        if (menuUserName) { menuUserName.textContent = ''; menuUserName.style.display = 'none'; }
     }
+}
+
+function autoBuscarCPF(el) {
+    if (!el) return;
+    // Formatar rapidamente para dígitos e validar
+    const raw = (el.value || '').replace(/\D/g, '');
+    if (raw.length !== 11) return; // não tenta buscar se inválido
+    // Chama a função existente que já faz fetch e preenche os campos
+    buscarCPF(el);
 }
 
 function getUsuarios() {
@@ -250,6 +269,23 @@ function cadastrarUsuario(event) {
         error.textContent = 'CPF inválido. Use 11 dígitos.';
         return;
     }
+    // Validação de senha: permitir caracteres especiais amplos (Unicode punctuation/symbols),
+    // exigir ao menos 6 caracteres e pelo menos uma letra e um número.
+    function validarSenha(s) {
+        if (!s || s.length < 6) return false;
+        // Usa classes Unicode: Letter (L), Number (N), Punctuation (P), Symbol (S)
+        // Requer pelo menos uma letra e um dígito; permite qualquer símbolo/pontuação.
+        const temLetra = /\p{L}/u.test(s);
+        const temNumero = /\p{N}/u.test(s);
+        const permitido = /^[\p{L}\p{N}\p{P}\p{S}]+$/u.test(s);
+        return temLetra && temNumero && permitido;
+    }
+
+    if (!validarSenha(senha)) {
+        error.textContent = 'Senha inválida. Use ao menos 6 caracteres, com letras, números e símbolos permitidos.';
+        return;
+    }
+
     const usuarios = getUsuarios();
     if (usuarios.some(u => u.email === email)) {
         error.textContent = 'Este email já está cadastrado.';
@@ -293,6 +329,28 @@ function preencherFormularioDados() {
 function formatarCPF(value) {
     const digits = value.replace(/\D/g, '').slice(0, 11);
     return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3.$4');
+}
+
+function buscarCPF(selectorOrId) {
+    const input = typeof selectorOrId === 'string' ? document.querySelector(selectorOrId) : selectorOrId;
+    if (!input) return;
+    const raw = input.value || '';
+    const cpf = raw.replace(/\D/g, '');
+    if (cpf.length !== 11) { showToast('CPF inválido. Use 11 dígitos.', 'erro'); return; }
+
+    fetch(`${API_URL.replace(/\/api$/, '')}/api/cpf/${cpf}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) { showToast(data.error || 'Não foi possível consultar CPF', 'erro'); return; }
+            const p = data.pessoa;
+            // Preenche campos disponíveis
+            const nomeInput = document.getElementById('cadastro-nome') || document.getElementById('nome-cliente');
+            const enderecoInput = document.getElementById('endereco');
+            if (nomeInput && p.nome) nomeInput.value = p.nome;
+            if (enderecoInput && p.endereco) enderecoInput.value = p.endereco;
+            showToast('Dados preenchidos a partir do CPF');
+        })
+        .catch(() => showToast('Erro ao consultar CPF.', 'erro'));
 }
 
 function abrirDashboard() {

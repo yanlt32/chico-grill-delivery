@@ -178,16 +178,17 @@ body {
     position: fixed;
     top: 0;
     left: -100%;
-    width: 280px;
+    width: min(320px, 86vw);
     height: 100vh;
-    background: var(--dark2);
-    border-right: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.98));
+    border-right: 1px solid rgba(255,255,255,0.06);
     z-index: 150;
     transition: left 0.3s ease;
-    padding-top: 70px;
+    padding: 82px 14px 18px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    box-shadow: 16px 0 40px rgba(0,0,0,0.45);
 }
 
 .menu-mobile.active {
@@ -195,12 +196,13 @@ body {
 }
 
 .menu-mobile .menu-link {
-    padding: 14px 24px;
+    padding: 14px 16px;
     color: var(--text);
     text-decoration: none;
     font-weight: 600;
     transition: var(--transition);
-    border-left: 3px solid transparent;
+    border: 1px solid transparent;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -214,9 +216,56 @@ body {
 }
 
 .menu-mobile .menu-link:hover {
-    background: var(--dark3);
-    border-left-color: var(--primary);
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(230, 51, 18, 0.25);
     color: var(--primary);
+    transform: translateX(2px);
+}
+
+.menu-mobile-footer {
+    margin-top: auto;
+    padding: 14px 2px 0;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-logout {
+    width: 100%;
+    border: 1px solid rgba(230, 51, 18, 0.25);
+    background: linear-gradient(180deg, rgba(230, 51, 18, 0.18), rgba(230, 51, 18, 0.08));
+    color: #ffd8d0;
+    border-radius: 14px;
+    padding: 13px 16px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.menu-logout:hover {
+    transform: translateY(-1px);
+    border-color: var(--primary);
+    background: linear-gradient(180deg, rgba(230, 51, 18, 0.28), rgba(230, 51, 18, 0.14));
+    color: #fff;
+}
+
+.menu-user-name {
+    color: rgba(255,255,255,0.92);
+    font-weight: 700;
+    text-align: left;
+    font-size: 0.95rem;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    word-break: break-word;
 }
 
 .menu-overlay {
@@ -898,6 +947,31 @@ h1 span { color: var(--primary); }
 .footer-admin {
     margin-top: 0.8rem;
 }
+
+    /* Confirmação de pedido */
+    .confirmacao-box {
+        background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+        border: 1px solid var(--border);
+        padding: 28px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+    }
+    .confirmacao-icon { font-size: 64px; margin-bottom: 8px; }
+    .confirmacao-titulo { font-size: 1.6rem; margin: 6px 0; color: var(--primary); }
+    .confirmacao-sub { color: var(--text-muted); margin-bottom: 12px; }
+    .confirmacao-info { margin-top: 12px; display: grid; gap: 10px; }
+    .confirm-row { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background: rgba(0,0,0,0.25); border-radius:8px; }
+    .confirm-tag { margin-top:12px; display:inline-block; padding:8px 12px; border-radius:8px; font-weight:700; }
+    .confirm-cartao { background: linear-gradient(90deg,#ffeedd, #fff0e6); color:#333; }
+    .confirm-dinheiro { background: linear-gradient(90deg,#e6ffed,#dfffea); color:#085f2a; }
+    .confirm-troco { margin-top:8px; font-size:0.9rem; color:var(--text-muted); }
+
+    @media (max-width: 760px) {
+        .confirmacao-box { padding: 18px; }
+        .confirmacao-icon { font-size: 48px; }
+        .confirmacao-titulo { font-size: 1.3rem; }
+    }
 
 .btn-admin {
     background: transparent;

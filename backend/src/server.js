@@ -8,6 +8,8 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const { createTables } = require('./config/database');
 const pedidosRoutes = require('./routes/pedidos');
 const pagamentosRoutes = require('./routes/pagamentos');
+const cpfRoutes = require('./routes/cpf');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const server = http.createServer(app);
@@ -108,6 +110,8 @@ app.put('/api/admin/cardapio', (req, res) => {
 app.get('/health', (req, res) => res.json({ status: 'OK' }));
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
+app.use('/api/cpf', cpfRoutes);
+app.use('/auth', authRoutes);
 
 const frontendPath = path.resolve(__dirname, '../../frontend');
 app.use(express.static(frontendPath));
