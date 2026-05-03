@@ -18,6 +18,7 @@ const io = socketIO(server, {
 // ===== MIDDLEWARE =====
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // ===== NOTIFICAÇÃO (injetada via app.locals para evitar circular require) =====
 function notificarMudancaPedido(pedidoId, novoStatus) {

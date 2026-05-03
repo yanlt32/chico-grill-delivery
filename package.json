@@ -15,5 +15,8 @@
   "devDependencies": {
     "concurrently": "^8.0.0",
     "open": "^11.0.0"
+  },
+  "dependencies": {
+    "canvas": "^3.2.3"
   }
 }

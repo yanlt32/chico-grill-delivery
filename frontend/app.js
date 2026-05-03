@@ -3,24 +3,60 @@ const API_URL = window.API_URL || (window.location.port === '5000'
     ? `${window.location.protocol}//${window.location.hostname}:3000/api`
     : '/api');
 
-const IMAGENS = {
-    espetos: 'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?auto=format&fit=crop&w=600&q=80',
-    burgers: {
-        burger_najla:        'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=600&q=80',
-        burger_jojo:         'https://images.unsplash.com/photo-1553979459-d2229a743c2b?auto=format&fit=crop&w=600&q=80',
-        burger_toguro:       'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=600&q=80',
-        burger_bony:         'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=600&q=80',
-        burger_picanha:      'https://images.unsplash.com/photo-1551782450-17144efb9c50?auto=format&fit=crop&w=600&q=80',
-        burger_espeto:       'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=600&q=80',
-        burger_espeto_duplo: 'https://images.unsplash.com/photo-1553979459-d2229a743c2b?auto=format&fit=crop&w=600&q=80',
-    },
-    bebidas: { emoji: '🍺', bebida_refri: '🥤', bebida_suco: '🍊', bebida_agua: '💧' }
+// ===== MAPEAMENTO DE IMAGENS =====
+// As imagens estão armazenadas em: frontend/images/
+// Cada produto tem um caminho automático baseado em seu ID
+
+const IMAGENS_MAPEAMENTO = {
+    // ESPETOS
+    'esp_carne': './images/espetos/carne.png',
+    'esp_misto': './images/espetos/misto.png',
+    'esp_kafta': './images/espetos/kafta.png',
+    'esp_coracao': './images/espetos/coracao.png',
+    'esp_tulipa': './images/espetos/tulipa.png',
+    'esp_panceta': './images/espetos/panceta.png',
+    'esp_paoalho': './images/espetos/paoalho.png',
+    'esp_frango': './images/espetos/frango.png',
+    'esp_queijo': './images/espetos/queijo.png',
+    'esp_toscana': './images/espetos/toscana.png',
+    'esp_apimentada': './images/espetos/apimentada.png',
+    
+    // BURGERS
+    'burger_najla': './images/burgers/burger_najla.png',
+    'burger_jojo': './images/burgers/burger_jojo.png',
+    'burger_toguro': './images/burgers/burger_toguro.png',
+    'burger_bony': './images/burgers/burger_bony.png',
+    'burger_picanha': './images/burgers/burger_picanha.png',
+    'burger_espeto': './images/burgers/burger_espeto.png',
+    'burger_espeto_duplo': './images/burgers/burger_espeto_duplo.png',
+    
+    // BEBIDAS
+    'bebida_heineken': './images/bebidas/heineken.png',
+    'bebida_stella': './images/bebidas/stella.png',
+    'bebida_budweiser': './images/bebidas/budweiser.png',
+    'bebida_eisenbahn': './images/bebidas/eisenbahn.png',
+    'bebida_brahma': './images/bebidas/brahma.png',
+    'bebida_skol': './images/bebidas/skol.png',
+    'bebida_amstel': './images/bebidas/amstel.png',
+    'bebida_refri': './images/bebidas/refri.png',
+    'bebida_suco': './images/bebidas/suco.png',
+    'bebida_agua': './images/bebidas/agua.png',
 };
 
+function getImagemLocal(produto, categoria) {
+    // Retorna URL para imagem local na pasta frontend/images/
+    const nomeArquivo = produto.id.split('_').pop(); // Remove prefixo (esp_, burger_, bebida_)
+    return `./images/${categoria}/${nomeArquivo}.png`;
+}
+
 function getImagem(produto, categoria) {
-    if (categoria === 'espetos') return IMAGENS.espetos;
-    if (categoria === 'burgers') return IMAGENS.burgers[produto.id] || IMAGENS.burgers.burger_najla;
-    return null;
+    // Tenta usar o mapeamento direto primeiro
+    if (IMAGENS_MAPEAMENTO[produto.id]) {
+        return IMAGENS_MAPEAMENTO[produto.id];
+    }
+    
+    // Fallback para geração automática do caminho
+    return getImagemLocal(produto, categoria);
 }
 
 const CATEGORIA_TAG = { espetos: '🔥 Espeto', burgers: '🍔 Burger', bebidas: '🥤 Bebida' };
