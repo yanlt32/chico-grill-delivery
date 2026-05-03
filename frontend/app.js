@@ -37,13 +37,59 @@ const SESSION_KEY = 'chico_user_session';
 let usuarioLogado = null;
 let ratingSelecionado = 0;
 
+// ===== MENU HAMBURGER =====
+function toggleMenu() {
+    const hamburger = document.getElementById('hamburger');
+    const menuMobile = document.getElementById('menu-mobile');
+    const overlay = document.getElementById('menu-overlay');
+    
+    hamburger.classList.toggle('active');
+    menuMobile.classList.toggle('active');
+    overlay.classList.toggle('active');
+    
+    if (menuMobile.classList.contains('active')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+}
+
+function closeMenu() {
+    const hamburger = document.getElementById('hamburger');
+    const menuMobile = document.getElementById('menu-mobile');
+    const overlay = document.getElementById('menu-overlay');
+    
+    hamburger.classList.remove('active');
+    menuMobile.classList.remove('active');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
     criarToastContainer();
     carregarSessaoUsuario();
     carregarCardapio();
     conectarSocket();
+    initHamburgerEvents();
+    
+    // Verificar pedido na URL
+    const pedidoId = new URLSearchParams(window.location.search).get('pedido_id');
+    if (pedidoId) carregarAcompanhamento(pedidoId, usuarioLogado?.email);
 });
+
+function initHamburgerEvents() {
+    const hamburger = document.getElementById('hamburger');
+    const overlay = document.getElementById('menu-overlay');
+    
+    if (hamburger) hamburger.addEventListener('click', toggleMenu);
+    if (overlay) overlay.addEventListener('click', closeMenu);
+    
+    // Fechar menu ao clicar em links
+    document.querySelectorAll('.menu-link').forEach(link => {
+        link.addEventListener('click', closeMenu);
+    });
+}
 
 function criarToastContainer() {
     const tc = document.createElement('div');
@@ -78,11 +124,11 @@ function atualizarCabecalhoUsuario() {
     if (!btnLogin || !btnUser) return;
     if (usuarioLogado) {
         btnLogin.textContent = `Olá, ${usuarioLogado.nome.split(' ')[0]}`;
-        btnLogin.onclick = abrirDashboard;
+        btnLogin.onclick = () => { abrirDashboard(); closeMenu(); };
         btnUser.style.display = 'inline-flex';
     } else {
         btnLogin.textContent = 'Entrar / Criar';
-        btnLogin.onclick = abrirLoginModal;
+        btnLogin.onclick = () => { abrirLoginModal(); closeMenu(); };
         btnUser.style.display = 'none';
     }
 }
@@ -101,6 +147,7 @@ function salvarUsuarios(usuarios) {
 
 function abrirLoginModal() {
     document.getElementById('login-modal').style.display = 'flex';
+    closeMenu();
 }
 
 function fecharModalLogin() {
@@ -109,6 +156,7 @@ function fecharModalLogin() {
 
 function abrirAcessoModal() {
     document.getElementById('access-modal').style.display = 'flex';
+    closeMenu();
 }
 
 function fecharAcessoModal() {
@@ -190,6 +238,7 @@ function logoutUsuario() {
     atualizarCabecalhoUsuario();
     showToast('Você saiu da conta.');
     mudarView('cardapio');
+    closeMenu();
 }
 
 function preencherFormularioDados() {
@@ -207,7 +256,7 @@ function preencherFormularioDados() {
 
 function formatarCPF(value) {
     const digits = value.replace(/\D/g, '').slice(0, 11);
-    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3.$4');
 }
 
 function abrirDashboard() {
@@ -367,7 +416,7 @@ function renderizarCarrinho() {
                 <button class="btn" style="padding:0.3rem 0.7rem;margin-top:0" onclick="aumentarQuantidade('${item.id}')">+</button>
             </div>
             <div class="carrinho-item-preco">R$ ${(item.preco * item.quantidade).toFixed(2)}</div>
-            <button onclick="removerDoCarrinho('${item.id}')" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:0.2rem 0.4rem;border-radius:4px;transition:color 0.2s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">✕</button>
+            <button onclick="removerDoCarrinho('${item.id}')" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;">✕</button>
         </div>`).join('');
     atualizarResumo();
 }
@@ -393,13 +442,11 @@ function atualizarResumo() {
         </div>`).join('');
 }
 
-// ===== PAGAMENTO SELEÇÃO =====
+// ===== PAGAMENTO =====
 function selecionarPagamento(forma) {
     formaPagamentoSelecionada = forma;
     document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('ativo'));
     document.getElementById(`pay-${forma}`).classList.add('ativo');
-
-    // Mostrar/esconder campo de troco
     const trocoGroup = document.getElementById('troco-group');
     if (forma === 'dinheiro') {
         trocoGroup.style.display = 'block';
@@ -414,6 +461,7 @@ function mudarView(v) {
     document.querySelectorAll('.view').forEach(el=>el.classList.remove('ativo'));
     document.getElementById(`view-${v}`).classList.add('ativo');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    closeMenu();
 }
 function abrirCarrinho() { atualizarCarrinho(); mudarView('carrinho'); }
 function voltarCardapio() { mudarView('cardapio'); }
@@ -421,7 +469,6 @@ function voltarCarrinho() { mudarView('carrinho'); }
 function irCheckout() {
     if (!carrinho.length) { showToast('Adicione itens ao carrinho','erro'); return; }
     atualizarResumo();
-    // Reset pagamento
     selecionarPagamento('pix');
     mudarView('checkout');
 }
@@ -445,7 +492,6 @@ function confirmarPedido(event) {
     const obs = document.getElementById('observacoes').value.trim();
     const trocoPara = document.getElementById('troco-para')?.value?.trim();
 
-    // Validar troco
     if (formaPagamentoSelecionada === 'dinheiro' && trocoPara) {
         const trocoVal = parseFloat(trocoPara.replace(',','.'));
         if (trocoVal < total) {
@@ -484,7 +530,6 @@ function confirmarPedido(event) {
                 mudarView('pagamento');
                 iniciarPagamento(pedidoAtual.id, total);
             } else {
-                // Cartão ou dinheiro — pedido já vai pago direto para cozinha
                 confirmarPedidoPresencial(pedidoAtual, total);
             }
         } else { showToast('Erro ao criar pedido: '+data.error,'erro'); }
@@ -493,21 +538,18 @@ function confirmarPedido(event) {
 }
 
 function confirmarPedidoPresencial(pedido, total) {
-    // Vai direto para acompanhamento com mensagem de confirmação
     const tempo = calcularTempoEstimado();
     exibirConfirmacao(pedido, total, tempo);
     mudarView('confirmacao');
-    // Limpar carrinho
     carrinho = [];
     atualizarCarrinho();
 }
 
 function calcularTempoEstimado() {
-    // Simula tempo baseado na quantidade de itens
     const itens = pedidoAtual?.itens?.length || carrinho.length;
     const base = 25;
     const extra = Math.floor(itens / 3) * 5;
-    return base + extra; // minutos
+    return base + extra;
 }
 
 function exibirConfirmacao(pedido, total, tempo) {
@@ -529,38 +571,15 @@ function exibirConfirmacao(pedido, total, tempo) {
         <div class="confirmacao-icon">✅</div>
         <h2 class="confirmacao-titulo">Pedido Confirmado!</h2>
         <p class="confirmacao-sub">Seu pedido foi enviado para a cozinha</p>
-
         <div class="confirmacao-info">
-            <div class="confirm-row">
-                <span>Pedido</span>
-                <span>#${pedido.id.slice(0,8)}</span>
-            </div>
-            <div class="confirm-row">
-                <span>Total</span>
-                <span style="color:var(--primary);font-weight:900">R$ ${total.toFixed(2)}</span>
-            </div>
-            <div class="confirm-row">
-                <span>Entrega estimada</span>
-                <span>⏱ ${tempo}–${tempo+10} minutos</span>
-            </div>
-            <div class="confirm-row">
-                <span>Endereço</span>
-                <span style="font-size:0.85rem">${pedido.endereco}</span>
-            </div>
-            <div class="confirm-row">
-                <span>CPF</span>
-                <span>${pedido.cpf || '---'}</span>
-            </div>
+            <div class="confirm-row"><span>Pedido</span><span>#${pedido.id.slice(0,8)}</span></div>
+            <div class="confirm-row"><span>Total</span><span style="color:var(--primary);font-weight:900">R$ ${total.toFixed(2)}</span></div>
+            <div class="confirm-row"><span>Entrega estimada</span><span>⏱ ${tempo}–${tempo+10} minutos</span></div>
+            <div class="confirm-row"><span>Endereço</span><span style="font-size:0.85rem">${pedido.endereco}</span></div>
         </div>
-
         ${pagamentoInfo}
-
-        <button class="btn btn-primary btn-block" style="margin-top:1.5rem" onclick="irParaAcompanhamento()">
-            📍 Acompanhar Pedido
-        </button>
-        <button class="btn btn-secondary btn-block" onclick="voltarCardapio()">
-            + Fazer Novo Pedido
-        </button>
+        <button class="btn btn-primary btn-block" style="margin-top:1.5rem" onclick="irParaAcompanhamento()">📍 Acompanhar Pedido</button>
+        <button class="btn btn-secondary btn-block" onclick="voltarCardapio()">+ Fazer Novo Pedido</button>
     `;
 }
 
@@ -591,10 +610,7 @@ function exibirQRCode(qrCode) {
     if (qrCode && !qrCode.startsWith('mock_')) {
         new QRCode(container, { text: qrCode, width: 180, height: 180 });
     } else {
-        container.innerHTML = `<div style="width:180px;height:180px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0.5rem">
-            <div style="font-size:2rem">📱</div>
-            <div style="font-size:0.7rem;color:#666;text-align:center;padding:0 1rem">QR Code aparecerá aqui com PIX real</div>
-        </div>`;
+        container.innerHTML = `<div style="width:180px;height:180px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;"><div style="font-size:2rem">📱</div></div>`;
     }
 }
 
@@ -611,8 +627,7 @@ function monitorarPagamento(pedidoId, paymentId) {
         .then(data => {
             if (data.success && data.status.status === 'approved') {
                 clearInterval(intervalo);
-                statusDiv.classList.add('sucesso');
-                statusDiv.innerHTML = '✅ Pagamento aprovado! Enviando para a cozinha...';
+                if (statusDiv) statusDiv.innerHTML = '✅ Pagamento aprovado! Redirecionando...';
                 atualizarStatusPedido(pedidoId, 'pago');
                 setTimeout(() => {
                     const tempo = calcularTempoEstimado();
@@ -632,26 +647,12 @@ function renderizarAcompanhamento(pedido) {
     const statusOrder = ['aguardando_pagamento','pago','em_preparo','pronto','saiu_entrega','entregue'];
     const infoDiv = document.getElementById('pedido-info');
     infoDiv.innerHTML = `
-        <div class="pedido-info-item">
-            <span class="pedido-info-label">Pedido</span>
-            <span class="pedido-info-value">#${pedido.id.slice(0,8)}</span>
-        </div>
-        <div class="pedido-info-item">
-            <span class="pedido-info-label">Cliente</span>
-            <span class="pedido-info-value">${pedido.nome_cliente}</span>
-        </div>
-        <div class="pedido-info-item">
-            <span class="pedido-info-label">CPF</span>
-            <span class="pedido-info-value">${pedido.cpf || '---'}</span>
-        </div>
-        <div class="pedido-info-item">
-            <span class="pedido-info-label">Total</span>
-            <span class="pedido-info-value" style="color:var(--primary)">R$ ${((pedido.total||0)+5).toFixed(2)}</span>
-        </div>
-        <div class="pedido-info-item">
-            <span class="pedido-info-label">Itens</span>
-            <span class="pedido-info-value">${pedido.itens?.length||0} item(s)</span>
-        </div>
+        <div class="pedido-info-item"><span class="pedido-info-label">Pedido</span><span class="pedido-info-value">#${pedido.id.slice(0,8)}</span></div>
+        <div class="pedido-info-item"><span class="pedido-info-label">Cliente</span><span class="pedido-info-value">${pedido.nome_cliente}</span></div>
+        <div class="pedido-info-item"><span class="pedido-info-label">CPF</span><span class="pedido-info-value">${pedido.cpf || '---'}</span></div>
+        <div class="pedido-info-item"><span class="pedido-info-label">Total</span><span class="pedido-info-value" style="color:var(--primary)">R$ ${((pedido.total||0)+5).toFixed(2)}</span></div>
+        <div class="pedido-info-item"><span class="pedido-info-label">Itens</span><span class="pedido-info-value">${pedido.itens?.length||0} item(s)</span></div>
+        <div class="pedido-info-item"><span class="pedido-info-label">Endereço</span><span class="pedido-info-value">${pedido.endereco || ''}</span></div>
     `;
     statusOrder.forEach(status => {
         const el = document.getElementById(`status-${status}`);
@@ -663,9 +664,65 @@ function renderizarAcompanhamento(pedido) {
     renderizarAvaliacao(pedido);
 }
 
+function renderizarAvaliacao(pedido) {
+    const box = document.getElementById('avaliacao-box');
+    if (!pedido || pedido.status !== 'entregue') {
+        if (box) box.style.display = 'none';
+        return;
+    }
+    if (box) box.style.display = 'block';
+    const comentario = pedido.avaliacao_comentario || '';
+    box.innerHTML = `
+        <div class="avaliacao-title">Avalie seu pedido</div>
+        <div class="avaliacao-sub">Conte para nós como foi a sua experiência</div>
+        <div class="avaliacao-stars" id="avaliacao-stars">
+            ${[1,2,3,4,5].map(n => `<button type="button" class="estrela" onclick="selecionarEstrela(${n})">★</button>`).join('')}
+        </div>
+        <div class="form-group">
+            <label>Comentário</label>
+            <textarea id="avaliacao-comentario" placeholder="O que achou do pedido?">${comentario}</textarea>
+        </div>
+        <button type="button" class="btn btn-primary btn-block" onclick="enviarAvaliacao()">Enviar avaliação</button>
+    `;
+}
+
+function selecionarEstrela(n) {
+    ratingSelecionado = n;
+    document.querySelectorAll('.estrela').forEach((btn, idx) => btn.classList.toggle('ativo', idx < n));
+}
+
+function enviarAvaliacao() {
+    if (!pedidoAtual || !pedidoAtual.id) return;
+    const estrela = ratingSelecionado || document.querySelectorAll('.estrela.ativo').length;
+    if (estrela < 1) { showToast('Escolha pelo menos 1 estrela', 'erro'); return; }
+    const comentario = document.getElementById('avaliacao-comentario').value.trim();
+    fetch(`${API_URL}/pedidos/${pedidoAtual.id}/avaliacao`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estrela, comentario }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            pedidoAtual.avaliacao_estrela = estrela;
+            pedidoAtual.avaliacao_comentario = comentario;
+            showToast('Obrigado pela avaliação!');
+            renderizarAvaliacao(pedidoAtual);
+        }
+    })
+    .catch(() => showToast('Erro ao enviar avaliação', 'erro'));
+}
+
+function atualizarStatusPedido(pedidoId, novoStatus) {
+    fetch(`${API_URL}/pedidos/${pedidoId}/status`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ status: novoStatus }),
+    }).catch(()=>{});
+}
+
 function abrirAcompanhamentoModal() {
     const modal = document.getElementById('pedido-modal');
-    modal.style.display = 'flex';
+    if (modal) modal.style.display = 'flex';
     const saved = localStorage.getItem(ORDER_STORAGE_KEY);
     if (saved) document.getElementById('pedido-id-input').value = saved;
 }
@@ -681,70 +738,6 @@ function consultarPedidoPorId() {
     carregarAcompanhamento(pedidoId, usuarioLogado?.email);
 }
 
-function renderizarAvaliacao(pedido) {
-    const box = document.getElementById('avaliacao-box');
-    if (!pedido || pedido.status !== 'entregue') {
-        box.style.display = 'none';
-        box.innerHTML = '';
-        return;
-    }
-    box.style.display = 'block';
-    const estrelasAtivas = (pedido.avaliacao_estrela || ratingSelecionado || 0);
-    const comentario = pedido.avaliacao_comentario || '';
-    box.innerHTML = `
-        <div class="avaliacao-card">
-            <div class="avaliacao-title">Avalie seu pedido</div>
-            <div class="avaliacao-sub">Conte para nós como foi a sua experiência</div>
-            <div class="avaliacao-stars" id="avaliacao-stars">
-                ${[1,2,3,4,5].map(n => `<button type="button" class="estrela ${n <= estrelasAtivas ? 'ativo' : ''}" onclick="selecionarEstrela(${n})">★</button>`).join('')}
-            </div>
-            <div class="form-group">
-                <label>Comentário</label>
-                <textarea id="avaliacao-comentario" placeholder="O que achou do pedido?">${comentario}</textarea>
-            </div>
-            <button type="button" class="btn btn-primary btn-block" onclick="enviarAvaliacao()">Enviar avaliação</button>
-        </div>
-    `;
-}
-
-function selecionarEstrela(n) {
-    ratingSelecionado = n;
-    const stars = document.querySelectorAll('.estrela');
-    stars.forEach((button, index) => button.classList.toggle('ativo', index < n));
-}
-
-function enviarAvaliacao() {
-    if (!pedidoAtual || !pedidoAtual.id) return;
-    const estrela = ratingSelecionado || parseInt(document.querySelectorAll('.estrela.ativo').length, 10) || 0;
-    if (estrela < 1) { showToast('Escolha pelo menos 1 estrela', 'erro'); return; }
-    const comentario = document.getElementById('avaliacao-comentario').value.trim();
-    fetch(`${API_URL}/pedidos/${pedidoAtual.id}/avaliacao`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estrela, comentario }),
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            pedidoAtual.avaliacao_estrela = estrela;
-            pedidoAtual.avaliacao_comentario = comentario;
-            showToast('Obrigado pela avaliação!');
-            renderizarAvaliacao(pedidoAtual);
-        } else {
-            showToast('Erro ao enviar avaliação', 'erro');
-        }
-    })
-    .catch(() => showToast('Erro de conexão', 'erro'));
-}
-
-
-function atualizarStatusPedido(pedidoId, novoStatus) {
-    fetch(`${API_URL}/pedidos/${pedidoId}/status`, {
-        method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ status: novoStatus }),
-    }).then(r=>r.json()).then(d=>{ if(d.success) console.log('Status:',novoStatus); }).catch(()=>{});
-}
-
 // ===== SOCKET.IO =====
 function conectarSocket() {
     const socketUrl = window.location.port === '5000'
@@ -758,25 +751,16 @@ function conectarSocket() {
             renderizarAcompanhamento(pedidoAtual);
         }
     });
-    socket.on('disconnect', ()=>console.log('❌ Socket desconectado'));
 }
 
 // ===== TOAST =====
 function showToast(msg, tipo='ok') {
     const tc = document.getElementById('toast-container');
+    if (!tc) return;
     const t = document.createElement('div');
     t.className = 'toast';
-    t.style.borderLeftColor = tipo==='erro'?'var(--primary)': tipo==='info'?'#4da6ff':'var(--success)';
+    if (tipo === 'erro') t.classList.add('erro');
     t.textContent = msg;
     tc.appendChild(t);
     setTimeout(()=>t.remove(), 3500);
 }
-
-function fecharModalAdmin() {
-    document.getElementById('modal-admin').style.display = 'none';
-}
-
-window.addEventListener('load', () => {
-    const pedidoId = new URLSearchParams(window.location.search).get('pedido_id');
-    if (pedidoId) carregarAcompanhamento(pedidoId, usuarioLogado?.email);
-});

@@ -2,57 +2,83 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Admin Dashboard — CHICO GRILL</title>
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    
 </head>
 <body>
-    <header class="header">
-        <div class="container header-inner" style="justify-content:space-between; gap:1rem;">
-            <div class="logo">
-                <div class="logo-dot"></div>
-                CHICO GRILL / Admin
+    <!-- HEADER ADMIN -->
+    <header class="admin-header">
+        <div class="admin-header-inner">
+            <div class="admin-logo">
+                <i class="fas fa-fire"></i>
+                <div class="admin-logo-dot"></div>
+                CHICO GRILL / ADMIN
+                <div class="admin-logo-dot"></div>
             </div>
-            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-                <button class="btn btn-secondary" id="btn-logout" onclick="logoutAdmin()">Sair</button>
-            </div>
+            <button class="btn-logout" id="btn-logout" onclick="logoutAdmin()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </button>
         </div>
     </header>
 
     <main class="main">
-        <div id="dashboard-content" style="display:none">
+        <!-- LOADING INDICATOR -->
+        <div id="loading-indicator" class="loading-spinner" style="display:none;">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- DASHBOARD CONTENT -->
+        <div id="dashboard-content" style="display:none;">
+            <!-- STATS CARDS -->
             <div class="dashboard-grid">
                 <div class="dashboard-card">
-                    <h3>Total de pedidos</h3>
+                    <h3><i class="fas fa-shopping-bag"></i> Total de pedidos</h3>
                     <div class="dashboard-value" id="stat-total">0</div>
                 </div>
                 <div class="dashboard-card">
-                    <h3>Pedidos em preparo</h3>
-                    <div class="dashboard-value" id="stat-preparo">0</div>
+                    <h3><i class="fas fa-fire"></i> Em preparo</h3>
+                    <div class="dashboard-value warning" id="stat-preparo">0</div>
                 </div>
                 <div class="dashboard-card">
-                    <h3>Pedidos prontos</h3>
-                    <div class="dashboard-value" id="stat-prontos">0</div>
-                </div>
-            </div>
-            <div class="dashboard-grid">
-                <div class="dashboard-card">
-                    <h3>Avaliações recebidas</h3>
-                    <div class="dashboard-value" id="stat-avaliacoes">0</div>
+                    <h3><i class="fas fa-check-circle"></i> Prontos</h3>
+                    <div class="dashboard-value success" id="stat-prontos">0</div>
                 </div>
                 <div class="dashboard-card">
-                    <h3>Clientes únicos</h3>
-                    <div class="dashboard-value" id="stat-clientes">0</div>
-                </div>
-                <div class="dashboard-card">
-                    <h3>CPFs para CRM</h3>
-                    <div class="dashboard-value" id="stat-cpfs">0</div>
+                    <h3><i class="fas fa-truck"></i> Entregues</h3>
+                    <div class="dashboard-value info" id="stat-entregues">0</div>
                 </div>
             </div>
 
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-star"></i> Avaliações</h3>
+                    <div class="dashboard-value" id="stat-avaliacoes">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-users"></i> Clientes únicos</h3>
+                    <div class="dashboard-value blue" id="stat-clientes">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-id-card"></i> CPFs cadastrados</h3>
+                    <div class="dashboard-value" id="stat-cpfs">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-chart-line"></i> Faturamento total</h3>
+                    <div class="dashboard-value green" id="stat-faturamento">R$ 0,00</div>
+                </div>
+            </div>
+
+            <!-- GERENCIAR CARDÁPIO -->
             <section class="dashboard-section">
-                <h2>Gerenciar preços do cardápio</h2>
-                <div class="dashboard-notice">Atualize valores e publique imediatamente. Os ajustes serão refletidos na página principal.</div>
+                <h2><i class="fas fa-utensils"></i> Gerenciar preços do cardápio</h2>
+                <div class="dashboard-notice">
+                    <i class="fas fa-info-circle"></i>
+                    Atualize valores e publique imediatamente. Os ajustes serão refletidos na página principal.
+                </div>
                 <div class="dashboard-card" style="overflow-x:auto;">
                     <table class="dashboard-table" id="cardapio-table">
                         <thead>
@@ -66,19 +92,23 @@
                         <tbody></tbody>
                     </table>
                 </div>
-                <button class="btn btn-primary btn-update-price" onclick="salvarPrecoCardapio()">Salvar preços</button>
+                <button class="btn-update-price" onclick="salvarPrecoCardapio()">
+                    <i class="fas fa-save"></i> Salvar todos os preços
+                </button>
             </section>
 
+            <!-- FEEDBACK E AVALIAÇÕES -->
             <section class="dashboard-section">
-                <h2>Feedback e avaliações</h2>
+                <h2><i class="fas fa-comment-dots"></i> Feedback e avaliações</h2>
                 <div class="dashboard-card" style="overflow-x:auto;">
                     <table class="dashboard-table" id="feedback-table">
                         <thead>
                             <tr>
                                 <th>Pedido</th>
                                 <th>Cliente</th>
-                                <th>Estrelas</th>
+                                <th>Avaliação</th>
                                 <th>Comentário</th>
+                                <th>Data</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -86,17 +116,31 @@
                 </div>
             </section>
 
+            <!-- CLIENTES E CPFS -->
             <section class="dashboard-section">
-                <h2>Clientes e CPFs</h2>
+                <h2><i class="fas fa-address-card"></i> Clientes e CPFs</h2>
                 <div class="dashboard-card">
-                    <button class="btn btn-secondary" onclick="copiarCPFs()">Copiar lista de CPFs</button>
-                    <div style="margin-top:1rem;overflow-x:auto;">
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                        <button class="btn-copy" onclick="copiarCPFs()">
+                            <i class="fas fa-copy"></i> Copiar lista de CPFs
+                        </button>
+                        <button class="btn-copy" onclick="copiarEmails()">
+                            <i class="fas fa-envelope"></i> Copiar emails
+                        </button>
+                        <button class="btn-copy" onclick="exportarRelatorio()">
+                            <i class="fas fa-download"></i> Exportar relatório
+                        </button>
+                    </div>
+                    <div style="overflow-x:auto;">
                         <table class="dashboard-table" id="clientes-table">
                             <thead>
                                 <tr>
                                     <th>Cliente</th>
                                     <th>Telefone</th>
                                     <th>CPF</th>
+                                    <th>Pedidos</th>
+                                    <th>Total gasto</th>
+                                    <th>Último pedido</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -106,19 +150,26 @@
             </section>
         </div>
 
+        <!-- LOGIN MODAL -->
         <div id="admin-login" class="login-modal-overlay" style="display:flex;">
             <div class="login-modal-card">
-                <h2>Login Administrativo</h2>
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <i class="fas fa-fire" style="font-size: 2.5rem; color: var(--primary);"></i>
+                </div>
+                <h2>Acesso Administrativo</h2>
+                <p>Digite suas credenciais para acessar o painel de controle.</p>
                 <div class="form-group">
-                    <label>Email</label>
+                    <label><i class="fas fa-envelope"></i> Email</label>
                     <input type="email" id="admin-email" placeholder="admin@chicogrill.com" required>
                 </div>
                 <div class="form-group">
-                    <label>Senha</label>
-                    <input type="password" id="admin-password" placeholder="Senha do admin" required>
+                    <label><i class="fas fa-lock"></i> Senha</label>
+                    <input type="password" id="admin-password" placeholder="••••••••" required>
                 </div>
                 <div class="login-error" id="admin-error"></div>
-                <button class="btn btn-primary btn-block" onclick="loginAdmin()">Entrar</button>
+                <button class="btn btn-primary btn-block" onclick="loginAdmin()">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
             </div>
         </div>
     </main>

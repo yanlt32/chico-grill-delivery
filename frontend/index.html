@@ -2,33 +2,70 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHICO GRILL — Delivery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>CHICO GRILL — Delivery | Espetos, Burgers e Bebidas</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div id="app">
+        <!-- Header com hamburger menu -->
         <header class="header">
             <div class="container">
-                <div class="logo">🍔 CHICO GRILL</div>
-                <div class="header-actions">
+                <div class="logo">
+                    <span class="logo-icon">🍔</span> CHICO GRILL
+                </div>
+                
+                <!-- Botão Carrinho (fora do menu) -->
+                <div class="carrinho-wrapper">
                     <button class="btn-carrinho" onclick="abrirCarrinho()">
-                        <span class="carrinho-icon">🛒</span>
-                        <span>Carrinho</span>
+                        <span>🛒</span>
+                        <span class="carrinho-text">Carrinho</span>
                         <span class="carrinho-count" id="carrinho-count">0</span>
                     </button>
-                    <button class="btn btn-secondary btn-block header-btn" id="btn-login" onclick="abrirLoginModal()">
-                        Entrar / Criar
+                </div>
+                
+                <!-- Hamburguer Menu (Mobile) -->
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                
+                <!-- Desktop Buttons -->
+                <div class="header-buttons">
+                    <button class="header-btn" id="btn-login" onclick="abrirLoginModal()">
+                        <i class="fas fa-user"></i> Entrar
                     </button>
-                    <button class="btn btn-secondary btn-block header-btn" id="btn-user" onclick="abrirDashboard()" style="display:none">
-                        👤 Minha Conta
+                    <button class="header-btn" id="btn-user" onclick="abrirDashboard()" style="display:none">
+                        <i class="fas fa-id-card"></i> Minha Conta
                     </button>
-                    <button class="btn btn-secondary btn-block header-btn" onclick="abrirAcompanhamento()">
-                        👀 Meus pedidos
+                    <button class="header-btn" onclick="abrirAcompanhamento()">
+                        <i class="fas fa-truck"></i> Pedidos
                     </button>
                 </div>
             </div>
         </header>
+        
+        <!-- Menu Mobile -->
+        <div class="menu-mobile" id="menu-mobile">
+            <button class="menu-link" onclick="abrirDashboard()">
+                <i class="fas fa-id-card"></i> Minha Conta
+            </button>
+            <button class="menu-link" onclick="abrirAcompanhamento()">
+                <i class="fas fa-truck"></i> Meus Pedidos
+            </button>
+            <button class="menu-link" id="btn-login-mobile" onclick="abrirLoginModal()">
+                <i class="fas fa-sign-in-alt"></i> Entrar / Criar conta
+            </button>
+            <button class="menu-link" onclick="voltarCardapio()">
+                <i class="fas fa-utensils"></i> Cardápio
+            </button>
+            <button class="menu-link" onclick="abrirAcessoModal()">
+                <i class="fas fa-lock"></i> Acesso Interno
+            </button>
+        </div>
+        <div class="menu-overlay" id="menu-overlay"></div>
 
         <main class="main">
             <div class="container">
@@ -215,6 +252,7 @@
                     </div>
                 </div>
 
+                <!-- VIEW: DASHBOARD -->
                 <div id="view-dashboard" class="view">
                     <div class="page-header">
                         <h1>Minha Conta</h1>
@@ -241,14 +279,39 @@
             </div>
         </main>
 
+        <!-- FOOTER PROFISSIONAL -->
         <footer class="footer">
-            <p>🍔 CHICO GRILL Delivery | Desenvolvido por Yan Tortelli — <a href="https://www.linkedin.com/in/yantortelli" target="_blank" rel="noreferrer">linkedin.com/in/yantortelli</a> — 2026</p>
-            <div class="footer-admin">
-                <button class="btn-admin" type="button" onclick="abrirAcessoModal()">🔐 Acesso interno</button>
+            <div class="container">
+                <div class="footer-logo">
+                    <div class="footer-logo-text">🍔 CHICO GRILL</div>
+                </div>
+                <div class="footer-divider"></div>
+                <div class="footer-social">
+                    <a href="#" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                    <a href="#" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" target="_blank" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
+                </div>
+                <div class="footer-links">
+                    <a href="#" onclick="voltarCardapio()">Cardápio</a>
+                    <a href="#" onclick="abrirAcompanhamento()">Meus Pedidos</a>
+                    <a href="#" onclick="abrirDashboard()">Minha Conta</a>
+                    <a href="#" onclick="abrirAcessoModal()">Área Restrita</a>
+                </div>
+                <div class="footer-copyright">
+                    © 2026 CHICO GRILL Delivery - Todos os direitos reservados<br>
+                    Desenvolvido por <a href="https://linkedin.com/in/yanortellini" target="_blank" rel="noreferrer">Yan Tortelli</a>
+                </div>
+                <div class="footer-admin">
+                    <button class="btn-admin" type="button" onclick="abrirAcessoModal()">
+                        <i class="fas fa-lock"></i> Acesso interno
+                    </button>
+                </div>
             </div>
         </footer>
     </div>
 
+    <!-- MODAIS -->
     <div class="modal-overlay" id="access-modal">
         <div class="modal-card">
             <div class="modal-header">
